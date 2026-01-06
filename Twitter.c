@@ -3,11 +3,13 @@
 #include <string.h>
 #include <ctype.h> 
 #include <windows.h> 
+#include <time.h>
 #define MAX_BUFFER 2048
 
 // Estructuras
 struct StringNode {
-    char* data;
+    char* data;           // El contenido (Tweet o Nombre de usuario seguido)
+    char* fecha;          // NUEVO: Fecha de publicación (o NULL si es un seguidor)
     struct StringNode* sig;
 };
 typedef struct StringNode StringNode;
@@ -25,8 +27,8 @@ struct User {
 typedef struct User User;
 
 // Funciones de utilidad de listas
-StringNode* createStringNode(const char* data);
-void addStringNode(StringNode** head, const char* data);
+StringNode* createStringNode(const char* data, const char* fecha);
+void addStringNode(StringNode** head, const char* data, const char* fecha);
 User* createUser(const char* user, const char* pass);
 void addUserToList(User** head, User* nvoUser);
 User* findUser(User* head, const char* username);
@@ -76,17 +78,28 @@ int main() {
     return 0;
 }
 
-StringNode* createStringNode(const char* data) {
+StringNode* createStringNode(const char* data, const char* fecha) {
     StringNode* nvo = (StringNode*)malloc(sizeof(StringNode));
+    
+    // 1. Asignar memoria y copiar el dato principal (Tweet/Nombre)
     nvo->data = (char*)malloc(strlen(data) + 1);
     strcpy(nvo->data, data);
+    
+    // 2. Asignar memoria para la fecha SOLO si se proporcionó una
+    if (fecha != NULL) {
+        nvo->fecha = (char*)malloc(strlen(fecha) + 1);
+        strcpy(nvo->fecha, fecha);
+    } else {
+        nvo->fecha = NULL; // Importante para saber que no tiene fecha
+    }
+
     nvo->sig = NULL;
     return nvo;
 }
 
 // Inserta un nodo string final de la lista
-void addStringNode(StringNode** head, const char* data) {
-    StringNode* nvo = createStringNode(data);
+void addStringNode(StringNode** head, const char* data, const char* fecha) {
+    StringNode* nvo = createStringNode(data, fecha);
     if (*head == NULL) {
         *head = nvo;
     } else {
@@ -148,8 +161,9 @@ void liberarStringList(StringNode* head) {
     while (head != NULL) {
         aux = head;
         head = head->sig;
-        free(aux->data); // Libera la cadena
-        free(aux);       // Libera el nodo
+        free(aux->data);
+        if (aux->fecha != NULL) free(aux->fecha); // <--- Liberar fecha
+        free(aux);
     }
 }
 
@@ -341,7 +355,8 @@ void menuTwitter(User* currentUser, User* userList) {
 //Acciones de Twitter---
 
 void publicarTweet(User* currentUser, User* userList) {
-    char tweet[280]; // Límite de Twitter
+    char tweet[280]; 
+    char fechaActual[50]; // Buffer para la fecha
     
     limpiarPantalla();
     printf("Escribe tu tweet (max 280 caracteres):\n");
@@ -350,17 +365,21 @@ void publicarTweet(User* currentUser, User* userList) {
     if (strlen(tweet) == 0) {
         printf("No se puede publicar un tweet vacio.\n");
     } else {
-        // Añade el tweet a la lista en memoria
-        addStringNode(&(currentUser->tweets), tweet);
+        // --- OBTENER FECHA Y HORA ---
+        time_t t = time(NULL);
+        struct tm *tm = localtime(&t);
+        // Formato: DD/MM/AAAA HH:MM
+        strftime(fechaActual, sizeof(fechaActual), "%d/%m/%Y %H:%M", tm);
+
+        // Añade el tweet a la lista CON FECHA
+        addStringNode(&(currentUser->tweets), tweet, fechaActual);
         
-        // Guarda la estructura de datos completa en los archivos
         guardarDatos(userList);
         
-        printf("\nTWEET PUBLICADO\n");
+        printf("\nTWEET PUBLICADO a las %s\n", fechaActual);
     }
     
-    Sleep(1000);
-
+    Sleep(2000);
 }
 
 void verTweets(User* currentUser) {
@@ -374,7 +393,7 @@ void verTweets(User* currentUser) {
         printf("Aun no has publicado nada.\n");
     } else {
         while (tweet != NULL) {
-            printf("\nTweet %d:\n", i);
+            printf("\nTweet %d (%s):\n", i, (tweet->fecha ? tweet->fecha : "N/A"));
             printf(" %s\n", tweet->data);
             i++;
             tweet = tweet->sig;
@@ -431,8 +450,7 @@ void seguirAlguien(User* currentUser, User* userList) {
         printf("Ya estas siguiendo a %s.\n", usuarioASeleccionar->username);
     } else {
         //Añade a la lista en memoria
-        addStringNode(&(currentUser->following), usuarioASeleccionar->username);
-        
+        addStringNode(&(currentUser->following), usuarioASeleccionar->username, NULL);
         //Guarda todo en los archivos
         guardarDatos(userList);
         
@@ -535,8 +553,7 @@ void verTimeline(User* currentUser, User* userList) {
             if (tweetIndex >= 0) {
                 User* user = followedUsers[j];
                 StringNode* tweet = tweetPointers[j][tweetIndex];
-                
-                printf("TWEET DE %s:\n", user->username);
+                printf("TWEET DE %s (%s):\n", user->username, (tweet->fecha ? tweet->fecha : "N/A"));
                 printf("%s\n", tweet->data);
                 printf("---------------------------\n");
                 tweetsMostrados++;
@@ -570,7 +587,8 @@ void guardarDatos(User* head) {
         fprintf(f_tweets, "%s", pUser->username);
         StringNode* pTweet = pUser->tweets;
         while (pTweet != NULL) {
-            fprintf(f_tweets, "|%s", pTweet->data); // <--- CAMBIO AQUÍ
+            char* fechaStr = (pTweet->fecha != NULL) ? pTweet->fecha : "N/A";
+            fprintf(f_tweets, "|%s|%s", fechaStr, pTweet->data);
             pTweet = pTweet->sig;
         }
         fprintf(f_tweets, "\n");
@@ -626,9 +644,12 @@ User* cargarDatos() {
             
             User* pUser = findUser(head, user);
             if (pUser != NULL) {
-                char* tweet;
-                while ((tweet = strtok(NULL, "|")) != NULL) { // <--- CAMBIO AQUÍ
-                    addStringNode(&(pUser->tweets), tweet);
+                char* fechaToken;
+                // Ahora leemos en pares: Primero Fecha, luego Tweet
+                while ((fechaToken = strtok(NULL, "|")) != NULL) {
+                    char* tweetToken = strtok(NULL, "|");
+                    if (tweetToken != NULL) {
+                        addStringNode(&(pUser->tweets), tweetToken, fechaToken);
                 }
             }
         }
@@ -647,7 +668,7 @@ User* cargarDatos() {
             if (pUser != NULL) {
                 char* follow;
                 while ((follow = strtok(NULL, "|")) != NULL) { // <--- CAMBIO AQUÍ
-                    addStringNode(&(pUser->following), follow);
+                    addStringNode(&(pUser->following), follow, NULL);
                 }
             }
         }
@@ -656,7 +677,7 @@ User* cargarDatos() {
 
     return head;
 }
-
+}
 // Otras Funciones---
 
 void limpiarPantalla() {
@@ -668,12 +689,6 @@ void leerEntrada(char* buffer, int size) {
     buffer[strcspn(buffer, "\n")] = 0; // Quita el 'Enter'
 }
 
-char getOpcion() {
-    char buffer[10];
-    leerEntrada(buffer, 10);
-    return tolower(buffer[0]);
-}
-
 void presionaXParaVolver() {
     printf("\nPresiona X para volver... ");
     char opcion;
@@ -681,3 +696,12 @@ void presionaXParaVolver() {
         opcion = getOpcion();
     } while (opcion != 'x');
 }
+
+char getOpcion() {
+    char buffer[10];
+    leerEntrada(buffer, 10);
+    return tolower(buffer[0]);
+}
+
+
+
