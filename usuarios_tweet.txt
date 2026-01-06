@@ -1,11 +1,11 @@
 Juan|06/01/2026 01:57|Hoy me siento genial|06/01/2026 01:57|Me siento libre|06/01/2026 01:57|Honor a quien honor merece|06/01/2026 01:57|Hola
 Pablo
 juan|06/01/2026 01:58|#Viajando
-Fulanito|06/01/2026 01:58|Mi General ante todo|06/01/2026 01:58|La Vida es Bella|06/01/2026 01:58|Yo solo se que no se nada|06/01/2026 01:59|Escuela Superior de Computo (ESCOM)
+Fulanito|06/01/2026 01:58|La Vida es Bella|06/01/2026 01:58|Yo solo se que no se nada|06/01/2026 01:59|Escuela Superior de Computo (ESCOM)
 Carlos|06/01/2026 01:59|Instituto Politecnico Nacional|06/01/2026 02:00|Siempre fiel a mi general|06/01/2026 02:00|Ya empieza la temporada de frio, asi que abrigate bien
 Paco|06/01/2026 02:00|Filosofia Filosofadora|06/01/2026 02:01|Es dia de ir al #cine en familia
 Martin|06/01/2026 02:01|Editor de texto, estructura de datos generacionales|06/01/2026 02:02|Hoy me he despertado conmucha tristeza, sabiendo que mañana ya te vas de mi
 Josefina|06/01/2026 02:02|Los pajaritos cantan cantan y cantan|06/01/2026 02:02|Depuracion de codigo|06/01/2026 02:02|La programacion fue hecha para ser programada
-Alberto|06/01/2026 02:03|Tengo un apuntador que apunta al siguiente usuario|06/01/2026 02:03|En la vida nunca hay que usar apuntadores salvajes|06/01/2026 02:03|No es bueno decir la verdad
+Alberto|06/01/2026 02:03|Tengo un apuntador que apunta al siguiente usuario|06/01/2026 02:03|En la vida nunca hay que usar apuntadores salvajes|06/01/2026 02:03|No es bueno decir la verdad|06/01/2026 02:59|RT @Fulanito: Yo solo se que no se nada|06/01/2026 03:00|A ratos
 Jose|06/01/2026 02:04|La vida esta hecha de retos y desafios|06/01/2026 02:04|hoy es un dia extraordinariamente extraordinario|06/01/2026 02:05|EXACTAMENTE ASI FUE EL DIA DE HOY|06/01/2026 02:05|El usuario debe tener paciencia
 x
