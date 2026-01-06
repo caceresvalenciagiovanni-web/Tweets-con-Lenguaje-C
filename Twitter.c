@@ -650,6 +650,7 @@ User* cargarDatos() {
                     char* tweetToken = strtok(NULL, "|");
                     if (tweetToken != NULL) {
                         addStringNode(&(pUser->tweets), tweetToken, fechaToken);
+                    }
                 }
             }
         }
@@ -677,7 +678,7 @@ User* cargarDatos() {
 
     return head;
 }
-}
+
 // Otras Funciones---
 
 void limpiarPantalla() {
