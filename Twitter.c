@@ -534,67 +534,108 @@ void verSeguidores(User* currentUser, User* userList) {
 }
 
 void verTimeline(User* currentUser, User* userList) {
-    limpiarPantalla();
-    printf("---------------------------\n");
-    printf("         TIMELINE \n");
-    printf("   (Mas recientes primero)\n");
-    printf("---------------------------\n");
-
-    // 1. RECOLECCIÓN: Buscar todos los tweets de la gente que sigo
-    TweetDisplay feed[500]; // Capacidad para 500 tweets en el muro
-    int totalTweets = 0;
-    
-    StringNode* pFollow = currentUser->following;
-
-    // Recorremos a quien seguimos
-    while (pFollow != NULL) {
-        User* amigo = findUser(userList, pFollow->data);
-        
-        if (amigo != NULL) {
-            // Recorremos los tweets de este amigo
-            StringNode* pTweet = amigo->tweets;
-            while (pTweet != NULL && totalTweets < 500) {
-                // Guardamos el autor y el puntero al tweet en nuestro arreglo
-                strcpy(feed[totalTweets].autor, amigo->username);
-                feed[totalTweets].tweet = pTweet;
-                totalTweets++;
-                
-                pTweet = pTweet->sig;
-            }
-        }
-        pFollow = pFollow->sig;
-    }
-
-    if (totalTweets == 0) {
-        printf("No hay tweets para mostrar. Asegurate de seguir a alguien activo.\n");
-        presionaXParaVolver();
-        return;
-    }
-
-    // 2. ORDENAMIENTO (Burbuja): Del más reciente al más antiguo
-    // Usamos nuestra función compararFechas
-    int i,j;
-    for (i = 0; i < totalTweets - 1; i++) {
-        for (j = 0; j < totalTweets - i - 1; j++) {
-            // Si la fecha de J es MENOR (más antigua) que la de J+1...
-            // ...los intercambiamos para que el más NUEVO suba.
-            if (compararFechas(feed[j].tweet->fecha, feed[j+1].tweet->fecha) < 0) {
-                TweetDisplay temp = feed[j];
-                feed[j] = feed[j+1];
-                feed[j+1] = temp;
-            }
-        }
-    }
-
-    // 3. IMPRESIÓN
-    for (i = 0; i < totalTweets; i++) {
-        StringNode* t = feed[i].tweet;
-        printf("@%s publico el [%s]:\n", feed[i].autor, (t->fecha ? t->fecha : "S/F"));
-        printf("  %s\n", t->data);
+    // Bucle para mantenernos en el Timeline hasta que queramos salir
+    while (1) {
+        limpiarPantalla();
         printf("---------------------------\n");
-    }
+        printf("         TIMELINE \n");
+        printf("   (Mas recientes primero)\n");
+        printf("---------------------------\n");
 
-    presionaXParaVolver();
+        // 1. RECOLECCIÓN
+        TweetDisplay feed[500]; 
+        int totalTweets = 0;
+        
+        StringNode* pFollow = currentUser->following;
+
+        while (pFollow != NULL) {
+            User* amigo = findUser(userList, pFollow->data);
+            if (amigo != NULL) {
+                StringNode* pTweet = amigo->tweets;
+                while (pTweet != NULL && totalTweets < 500) {
+                    strcpy(feed[totalTweets].autor, amigo->username);
+                    feed[totalTweets].tweet = pTweet;
+                    totalTweets++;
+                    pTweet = pTweet->sig;
+                }
+            }
+            pFollow = pFollow->sig;
+        }
+
+        if (totalTweets == 0) {
+            printf("No hay tweets para mostrar.\n");
+            presionaXParaVolver();
+            return;
+        }
+
+        // 2. ORDENAMIENTO (Burbuja)
+        int i, j;
+        for (i = 0; i < totalTweets - 1; i++) {
+            for (j = 0; j < totalTweets - i - 1; j++) {
+                if (compararFechas(feed[j].tweet->fecha, feed[j+1].tweet->fecha) < 0) {
+                    TweetDisplay temp = feed[j];
+                    feed[j] = feed[j+1];
+                    feed[j+1] = temp;
+                }
+            }
+        }
+
+        // 3. IMPRESIÓN CON NÚMEROS
+        for (i = 0; i < totalTweets; i++) {
+            StringNode* t = feed[i].tweet;
+            // Imprimimos un número índice (i+1) para poder seleccionar
+            printf("%d) @%s [%s]:\n", i + 1, feed[i].autor, (t->fecha ? t->fecha : "S/F"));
+            printf("   %s\n", t->data);
+            printf("---------------------------\n");
+        }
+
+        // 4. MENÚ INTERACTIVO
+        printf("\n[R]etwittear un tweet  |  [X] Volver al menu\n");
+        printf("Elige una opcion: ");
+        
+        char buffer[10];
+        leerEntrada(buffer, 10);
+        char opcion = tolower(buffer[0]);
+
+        if (opcion == 'x') {
+            break; // Sale de la función
+        } 
+        else if (opcion == 'r') {
+            printf("Ingresa el numero del tweet a Retwittear: ");
+            int numTweet;
+            leerEntrada(buffer, 10);
+            
+            // Validar la entrada
+            if (sscanf(buffer, "%d", &numTweet) == 1 && numTweet >= 1 && numTweet <= totalTweets) {
+                
+                // --- LÓGICA DE RETWEET ---
+                TweetDisplay seleccionado = feed[numTweet - 1];
+                char nuevoTexto[350]; // Espacio extra para "RT @..."
+                char fechaActual[50];
+
+                // Formateamos el nuevo tweet: "RT @Autor: Texto"
+                // snprintf es una version segura de sprintf para no desbordar el buffer
+                snprintf(nuevoTexto, sizeof(nuevoTexto), "RT @%s: %s", 
+                         seleccionado.autor, seleccionado.tweet->data);
+
+                // Obtenemos fecha actual
+                time_t t = time(NULL);
+                struct tm *tm = localtime(&t);
+                strftime(fechaActual, sizeof(fechaActual), "%d/%m/%Y %H:%M", tm);
+
+                // Guardamos
+                addStringNode(&(currentUser->tweets), nuevoTexto, fechaActual);
+                guardarDatos(userList);
+
+                printf("\n¡Has retwitteado a @%s con exito!\n", seleccionado.autor);
+                Sleep(1500);
+                // El bucle while(1) se repetirá y veremos nuestro RT arriba del todo
+            } else {
+                printf("Numero no valido.\n");
+                Sleep(1000);
+            }
+        }
+    }
 }
 
 //Carga y Guardado ---
