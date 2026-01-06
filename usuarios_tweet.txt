@@ -1,0 +1,11 @@
+Juan,Hoy me siento genial,Me siento libre,Honor a quien honor merece,Hola
+Pablo
+juan,#Viajando
+Fulanito,Mi General ante todo,La Vida es Bella,Yo solo se que que no se nada,Escuela Superior de Computo (ESCOM) una institucion del estado mexicano,Era una vez dos locos y una luna llena, Era una vez un mundo de pasión a tus pies
+Carlos,Instituto Politecnico Nacional Turson,Siempre Fiel a mi General,Ya empieza la temporada de frio asi que abrigate bien
+Paco,Filsofia Filosofadora,Es dia de ir al #cine en familia
+Martin,Editor de texto estructuras de datos generacionales,Hoy me he despertado con mucha tristeza sabiendo que mañana ya te vas de mi,Claro que si,Hoy es mi dia de suerte
+Josefina,Los pajaritos cantan cantan y cantan,Depuracion de Codigo,La programacion fue hecha para ser programada
+Alberto,Tengo un apuntador que apunta al siguiente usuario,En la vida nunca hay que usar apuntadores salvajes,No es bueno decir la verdad
+Jose,La vida esta hecha de retos y desafios,Hoy es un dia extraordinariamente extraordinario,EXACTAMENTE ASI FUE EL DIA DE HOY,El usuario debe tener una lista de seguidores y una lista de tweets,El usuario debe obedecer las reglas de orden y principios
+x
