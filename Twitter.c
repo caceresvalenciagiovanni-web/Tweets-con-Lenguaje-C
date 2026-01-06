@@ -563,23 +563,23 @@ void guardarDatos(User* head) {
 
     User* pUser = head;
     while (pUser != NULL) {
-        //Guarda en usuarios.txt
+        // Guarda en usuarios.txt (Mantenemos la coma aquí, ya que usuario/pass no suelen tener espacios ni comas)
         fprintf(f_users, "%s,%s\n", pUser->username, pUser->password);
 
-        //Guarda en usuarios_tweet.txt
+        // Guarda en usuarios_tweet.txt USANDO PIPE '|'
         fprintf(f_tweets, "%s", pUser->username);
         StringNode* pTweet = pUser->tweets;
         while (pTweet != NULL) {
-            fprintf(f_tweets, ",%s", pTweet->data);
+            fprintf(f_tweets, "|%s", pTweet->data); // <--- CAMBIO AQUÍ
             pTweet = pTweet->sig;
         }
         fprintf(f_tweets, "\n");
 
-        //Guarda en usuarios_follows.txt
+        // Guarda en usuarios_follows.txt USANDO PIPE '|'
         fprintf(f_follows, "%s", pUser->username);
         StringNode* pFollow = pUser->following;
         while (pFollow != NULL) {
-            fprintf(f_follows, ",%s", pFollow->data);
+            fprintf(f_follows, "|%s", pFollow->data); // <--- CAMBIO AQUÍ
             pFollow = pFollow->sig;
         }
         fprintf(f_follows, "\n");
@@ -597,16 +597,16 @@ User* cargarDatos() {
     User* head = NULL;
     char line[MAX_BUFFER];
 
-    //Cargar Usuarios y Contraseñas ---
+    // Cargar Usuarios y Contraseñas (Se mantiene con coma)
     f_users = fopen("usuarios.txt", "r");
     if (f_users == NULL) {
         printf("No se encontro 'usuarios.txt'. Se creara uno nuevo al guardar.\n");
         Sleep(2000);
-        return NULL; // Devuelve una lista vacía
+        return NULL; 
     }
 
     while (fgets(line, MAX_BUFFER, f_users) != NULL) {
-        line[strcspn(line, "\n")] = 0; // Quitar salto de línea
+        line[strcspn(line, "\n")] = 0; 
         char* user = strtok(line, ",");
         char* pass = strtok(NULL, ",");
         
@@ -616,19 +616,18 @@ User* cargarDatos() {
     }
     fclose(f_users);
 
-    // Cargar Tweets ---
+    // Cargar Tweets (MODIFICADO PARA LEER PIPES '|')
     FILE* f_tweets = fopen("usuarios_tweet.txt", "r");
     if (f_tweets != NULL) {
         while (fgets(line, MAX_BUFFER, f_tweets) != NULL) {
             line[strcspn(line, "\n")] = 0;
-            char* user = strtok(line, ",");
+            char* user = strtok(line, "|"); // <--- CAMBIO AQUÍ
             if (user == NULL) continue;
             
             User* pUser = findUser(head, user);
             if (pUser != NULL) {
-                // Leer el resto de tokens (tweets)
                 char* tweet;
-                while ((tweet = strtok(NULL, ",")) != NULL) {
+                while ((tweet = strtok(NULL, "|")) != NULL) { // <--- CAMBIO AQUÍ
                     addStringNode(&(pUser->tweets), tweet);
                 }
             }
@@ -636,19 +635,18 @@ User* cargarDatos() {
         fclose(f_tweets);
     }
 
-    // Cargar Follows ---
+    // Cargar Follows (MODIFICADO PARA LEER PIPES '|')
     FILE* f_follows = fopen("usuarios_follows.txt", "r");
     if (f_follows != NULL) {
         while (fgets(line, MAX_BUFFER, f_follows) != NULL) {
             line[strcspn(line, "\n")] = 0;
-            char* user = strtok(line, ",");
+            char* user = strtok(line, "|"); // <--- CAMBIO AQUÍ
             if (user == NULL) continue;
             
             User* pUser = findUser(head, user);
             if (pUser != NULL) {
-                // Leer el resto de tokens (follows)
                 char* follow;
-                while ((follow = strtok(NULL, ",")) != NULL) {
+                while ((follow = strtok(NULL, "|")) != NULL) { // <--- CAMBIO AQUÍ
                     addStringNode(&(pUser->following), follow);
                 }
             }
