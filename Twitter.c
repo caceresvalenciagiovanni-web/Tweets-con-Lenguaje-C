@@ -51,6 +51,7 @@ void menuTwitter(User* currentUser, User* userList);
 // Funciones de Acciones de Twitter
 void publicarTweet(User* currentUser, User* userList);
 void verTweets(User* currentUser);
+void borrarTweet(User* currentUser, User* userList);
 void seguirAlguien(User* currentUser, User* userList);
 void verSeguidores(User* currentUser, User* userList);
 void verTimeline(User* currentUser, User* userList);
@@ -323,6 +324,7 @@ void menuTwitter(User* currentUser, User* userList) {
         printf(" 3) SEGUIR A ALGUIEN\n");
         printf(" 4) VER A MIS SEGUIDORES\n");
         printf(" 5) VER TWEETS\n");
+        printf(" 6) BORRAR UN TWEET\n");
         printf(" X) SALIR (Cerrar Sesion)\n");
         printf("Opcion: ");
         opcion = getOpcion();
@@ -342,6 +344,9 @@ void menuTwitter(User* currentUser, User* userList) {
                 break; 
 			case '5':
                 verTimeline(currentUser, userList);
+                break;
+			case '6':
+                borrarTweet(currentUser, userList);
                 break;	   
             case 'x':
                 break; // Sale al menú principal
@@ -608,6 +613,75 @@ void guardarDatos(User* head) {
     fclose(f_users);
     fclose(f_tweets);
     fclose(f_follows);
+}
+
+void borrarTweet(User* currentUser, User* userList) {
+    limpiarPantalla();
+    printf("--- BORRAR TWEET ---\n");
+
+    StringNode* p = currentUser->tweets;
+    if (p == NULL) {
+        printf("No tienes tweets para borrar.\n");
+        presionaXParaVolver();
+        return;
+    }
+
+    // 1. Mostrar los tweets enumerados
+    int i = 1;
+    
+    while (p != NULL) {
+        printf("%d) [%s] %s\n", i, (p->fecha ? p->fecha : "N/A"), p->data);
+        p = p->sig;
+        i++;
+    }
+    int maxTweets = i - 1;
+
+    printf("------------------------\n");
+    printf(" X) Cancelar\n");
+    printf("Elige el numero del tweet a borrar: ");
+    
+    char buffer[10];
+    leerEntrada(buffer, 10);
+    if (tolower(buffer[0]) == 'x') return;
+
+    int opcion;
+    if (sscanf(buffer, "%d", &opcion) != 1 || opcion < 1 || opcion > maxTweets) {
+        printf("Opcion no valida.\n");
+        Sleep(1000);
+        return;
+    }
+
+    // 2. Lógica de borrado en Lista Enlazada
+    StringNode* borrado = NULL;
+
+    if (opcion == 1) {
+        // CASO 1: Borrar el primer tweet (la cabeza de la lista)
+        borrado = currentUser->tweets;          // Apuntamos al nodo a borrar
+        currentUser->tweets = currentUser->tweets->sig; // Movemos la cabeza al siguiente
+    } else {
+        // CASO 2: Borrar un tweet intermedio o final
+        StringNode* anterior = currentUser->tweets;
+        int k;
+        // Avanzamos hasta el nodo ANTERIOR al que queremos borrar
+        for (k = 1; k < opcion - 1; k++) {
+            anterior = anterior->sig;
+        }
+        borrado = anterior->sig;       // El nodo a borrar es el siguiente del anterior
+        anterior->sig = borrado->sig;  // "Saltamos" el nodo a borrar en la cadena
+    }
+
+    // 3. Liberar memoria y guardar cambios
+    if (borrado != NULL) {
+        printf("\nBorrando tweet: '%s'...\n", borrado->data);
+        free(borrado->data);
+        if (borrado->fecha) free(borrado->fecha);
+        free(borrado);
+        
+        guardarDatos(userList); // Actualizamos el archivo .txt
+        printf("Tweet eliminado con exito.\n");
+    }
+
+    Sleep(1500);
 }
 
 User* cargarDatos() {
