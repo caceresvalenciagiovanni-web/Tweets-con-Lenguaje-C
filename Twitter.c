@@ -430,19 +430,48 @@ void publicarTweet(User* currentUser, User* userList) {
 void verTweets(User* currentUser) {
     limpiarPantalla();
     printf("--- MIS TWEETS (%s) ---\n", currentUser->username);
+    printf("   (Mas recientes primero)\n");
+    printf("---------------------------\n");
     
-    StringNode* tweet = currentUser->tweets;
-    int i = 1;
+    // 1. RECOLECCIÓN: Pasamos la lista enlazada a un arreglo para poder ordenarla
+    StringNode* misTweets[500]; // Array temporal de punteros
+    int count = 0;
+    StringNode* p = currentUser->tweets;
+
+    while (p != NULL && count < 500) {
+        misTweets[count] = p; // Guardamos la dirección del tweet
+        count++;
+        p = p->sig;
+    }
     
-    if (tweet == NULL) {
+    if (count == 0) {
         printf("Aun no has publicado nada.\n");
-    } else {
-        while (tweet != NULL) {
-            printf("\nTweet %d (%s):\n", i, (tweet->fecha ? tweet->fecha : "N/A"));
-            printf(" %s\n", tweet->data);
-            i++;
-            tweet = tweet->sig;
+        presionaXParaVolver();
+        return;
+    }
+
+    // 2. ORDENAMIENTO (Burbuja): Del más reciente al más antiguo
+    // Reutilizamos tu función compararFechas
+    int i, j;
+    for (i = 0; i < count - 1; i++) {
+        for (j = 0; j < count - i - 1; j++) {
+            // Si la fecha actual es MENOR (más vieja) que la siguiente...
+            // ...las intercambiamos para que la más NUEVA suba al principio.
+            if (compararFechas(misTweets[j]->fecha, misTweets[j+1]->fecha) < 0) {
+                StringNode* temp = misTweets[j];
+                misTweets[j] = misTweets[j+1];
+                misTweets[j+1] = temp;
+            }
         }
+    }
+
+    // 3. IMPRESIÓN
+    for (i = 0; i < count; i++) {
+        StringNode* t = misTweets[i];
+        // Mostramos el tweet ordenado
+        printf("[%s]\n", (t->fecha ? t->fecha : "S/F"));
+        printf(" %s\n", t->data);
+        printf("---------------------------\n");
     }
     
     presionaXParaVolver();
