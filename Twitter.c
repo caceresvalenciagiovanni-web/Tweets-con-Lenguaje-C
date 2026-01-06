@@ -14,6 +14,13 @@ struct StringNode {
 };
 typedef struct StringNode StringNode;
 
+// Estructura auxiliar solo para mostrar el Timeline ordenado
+struct TweetDisplay {
+    char autor[50];
+    StringNode* tweet;
+};
+typedef struct TweetDisplay TweetDisplay;
+
 struct User {
     char username[50];
     char password[50];
@@ -33,6 +40,7 @@ User* createUser(const char* user, const char* pass);
 void addUserToList(User** head, User* nvoUser);
 User* findUser(User* head, const char* username);
 int isFollowing(User* currentUser, const char* username);
+int compararFechas(const char* f1, const char* f2);
 
 // Funciones de carga y guardado de archivos
 void guardarDatos(User* head);
@@ -166,6 +174,38 @@ void liberarStringList(StringNode* head) {
         if (aux->fecha != NULL) free(aux->fecha); // <--- Liberar fecha
         free(aux);
     }
+}
+
+// Retorna 1 si f1 es más reciente que f2, -1 si es más antiguo, 0 si son iguales
+int compararFechas(const char* f1, const char* f2) {
+    int d1, m1, a1, h1, min1;
+    int d2, m2, a2, h2, min2;
+
+    // Si alguno no tiene fecha, lo tratamos como muy antiguo
+    if (f1 == NULL) return -1;
+    if (f2 == NULL) return 1;
+
+    // Extraemos los numeros del string: DD/MM/AAAA HH:MM
+    sscanf(f1, "%d/%d/%d %d:%d", &d1, &m1, &a1, &h1, &min1);
+    sscanf(f2, "%d/%d/%d %d:%d", &d2, &m2, &a2, &h2, &min2);
+
+    // Jerarquía de comparación: Año -> Mes -> Día -> Hora -> Minuto
+    if (a1 > a2) return 1;
+    if (a1 < a2) return -1;
+    
+    if (m1 > m2) return 1;
+    if (m1 < m2) return -1;
+    
+    if (d1 > d2) return 1;
+    if (d1 < d2) return -1;
+    
+    if (h1 > h2) return 1;
+    if (h1 < h2) return -1;
+    
+    if (min1 > min2) return 1;
+    if (min1 < min2) return -1;
+
+    return 0; // Son exactamente iguales
 }
 
 void liberarUserList(User* head) {
@@ -496,77 +536,64 @@ void verSeguidores(User* currentUser, User* userList) {
 void verTimeline(User* currentUser, User* userList) {
     limpiarPantalla();
     printf("---------------------------\n");
-    printf("         TWEETS\n");
+    printf("         TIMELINE \n");
+    printf("   (Mas recientes primero)\n");
     printf("---------------------------\n");
+
+    // 1. RECOLECCIÓN: Buscar todos los tweets de la gente que sigo
+    TweetDisplay feed[500]; // Capacidad para 500 tweets en el muro
+    int totalTweets = 0;
     
-// Almacenamiento temporal en la pila.
-// Asumimos máx. 100 personas seguidas 
-//y máx. 200 tweets por persona.
-    User* followedUsers[100];
-    StringNode* tweetPointers[100][200];
-    int tweetCounts[100] = {0}; // Inicializar contadores a 0
-    int numFollowing = 0;
-    int k,j;
-    int maxTweets = 0; 
-	// El N° de tweets del usuario con más tweets
     StringNode* pFollow = currentUser->following;
 
-    // Construcción de los arreglos temporales
-    while (pFollow != NULL && numFollowing < 100) {
-        User* user = findUser(userList, pFollow->data);
-        if (user) {
-            followedUsers[numFollowing] = user;
-            
-            StringNode* pTweet = user->tweets;
-            int count = 0;
-            while (pTweet != NULL && count < 200) {
-                tweetPointers[numFollowing][count] = pTweet;
-                count++;
+    // Recorremos a quien seguimos
+    while (pFollow != NULL) {
+        User* amigo = findUser(userList, pFollow->data);
+        
+        if (amigo != NULL) {
+            // Recorremos los tweets de este amigo
+            StringNode* pTweet = amigo->tweets;
+            while (pTweet != NULL && totalTweets < 500) {
+                // Guardamos el autor y el puntero al tweet en nuestro arreglo
+                strcpy(feed[totalTweets].autor, amigo->username);
+                feed[totalTweets].tweet = pTweet;
+                totalTweets++;
+                
                 pTweet = pTweet->sig;
             }
-            
-            tweetCounts[numFollowing] = count;
-            if (count > maxTweets) {
-                maxTweets = count;
-            }
-            
-            numFollowing++;
         }
         pFollow = pFollow->sig;
     }
-    //Lógica de Impresión (Round-Robin) ---    
-    if (numFollowing == 0) {
-        printf("Aun no sigues a nadie.\n");
-    } else if (maxTweets == 0) {
-        printf("Las personas que sigues no han publicado nada.\n");
+
+    if (totalTweets == 0) {
+        printf("No hay tweets para mostrar. Asegurate de seguir a alguien activo.\n");
+        presionaXParaVolver();
+        return;
     }
 
-    int tweetsMostrados = 0;
-
-//"k" es la ronda(0 = la más reciente, 1 = la 2da más reciente, etc.)
-    for (k = 0; k < maxTweets; k++) {
-        
-// "j" es el usuario en la lista de seguidos (Ana, Pablo, José...)
-        for (j = 0; j < numFollowing; j++) {
-            
-        // Calculamos el índice del tweet (N-ésimo desde el final)
-        // ej. Si tiene 3 tweets (índices 0,1,2) y k=0:
-        // tweetIndex = 3 - 1 - 0 = 2 (El último tweet)
-            int tweetIndex = tweetCounts[j] - 1 - k;
-
-            // Si este usuario todavía tiene un tweet en esta ronda
-            if (tweetIndex >= 0) {
-                User* user = followedUsers[j];
-                StringNode* tweet = tweetPointers[j][tweetIndex];
-                printf("TWEET DE %s (%s):\n", user->username, (tweet->fecha ? tweet->fecha : "N/A"));
-                printf("%s\n", tweet->data);
-                printf("---------------------------\n");
-                tweetsMostrados++;
+    // 2. ORDENAMIENTO (Burbuja): Del más reciente al más antiguo
+    // Usamos nuestra función compararFechas
+    int i,j;
+    for (i = 0; i < totalTweets - 1; i++) {
+        for (j = 0; j < totalTweets - i - 1; j++) {
+            // Si la fecha de J es MENOR (más antigua) que la de J+1...
+            // ...los intercambiamos para que el más NUEVO suba.
+            if (compararFechas(feed[j].tweet->fecha, feed[j+1].tweet->fecha) < 0) {
+                TweetDisplay temp = feed[j];
+                feed[j] = feed[j+1];
+                feed[j+1] = temp;
             }
         }
     }
-    
-    // 3. Volver
+
+    // 3. IMPRESIÓN
+    for (i = 0; i < totalTweets; i++) {
+        StringNode* t = feed[i].tweet;
+        printf("@%s publico el [%s]:\n", feed[i].autor, (t->fecha ? t->fecha : "S/F"));
+        printf("  %s\n", t->data);
+        printf("---------------------------\n");
+    }
+
     presionaXParaVolver();
 }
 
