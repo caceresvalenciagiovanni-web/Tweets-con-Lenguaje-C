@@ -72,8 +72,8 @@ void presionaXParaVolver();
 
 // --- MAIN ---
 int main() {
-    SetConsoleCP(1252);
-    SetConsoleOutputCP(1252);
+    SetConsoleCP(65001);
+    SetConsoleOutputCP(65001);
     
     User* userList = cargarDatos(); 
     menuBienvenida(&userList); 
