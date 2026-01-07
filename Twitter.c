@@ -33,7 +33,7 @@ typedef struct User User;
 // Utilidad
 StringNode* createStringNode(const char* data, const char* fecha);
 void addStringNode(StringNode** head, const char* data, const char* fecha);
-void borrarStringNode(StringNode** head, const char* data); // NUEVA
+void borrarStringNode(StringNode** head, const char* data);
 User* createUser(const char* user, const char* pass);
 void addUserToList(User** head, User* nvoUser);
 User* findUser(User* head, const char* username);
@@ -61,7 +61,7 @@ void accionPublicarTweet(User* currentUser, User* userList);
 void accionRetwittear(User* currentUser, User* userList);
 void accionBorrarTweet(User* currentUser, User* userList);
 void accionSeguir(User* currentUser, User* userList);
-void accionDejarDeSeguir(User* currentUser, User* userList); // NUEVA
+void accionDejarDeSeguir(User* currentUser, User* userList);
 void accionVerSeguidores(User* currentUser, User* userList);
 
 // Auxiliares
@@ -228,12 +228,13 @@ void menuBienvenida(User** userList) {
     char opcion;
     do {
         limpiarPantalla();
-        printf("-------------------------\n");
-        printf("  BIENVENIDO A TWITTER\n");
-        printf("-------------------------\n");
+        printf("---------------------------------------------------------------------------------------\n");
+        printf("                                   BIENVENIDO A TWITTER\n");
+        printf("---------------------------------------------------------------------------------------\n");
         printf(" 1) Crear Usuario\n");
-        printf(" 2) Registrarse\n");
+        printf(" 2) Iniciar Sesion\n");
         printf(" X) Salir\n");
+        printf("---------------------------------------------------------------------------------------\n");
         printf("Opcion: ");
         opcion = getOpcion();
 
@@ -261,9 +262,9 @@ void menuBienvenida(User** userList) {
 User* menuCrearUsuario(User** userList) {
     char nvoUser[50], nvoPass[50];
     limpiarPantalla();
-    printf("-------------------------\n");
-    printf(" Crear Nuevo Usuario \n");
-    printf("-------------------------\n");
+    printf("---------------------------------------------------------------------------------------\n");
+    printf("                                     ¿NUEVO EN TWITTER? \n");
+    printf("---------------------------------------------------------------------------------------\n");
     printf("Ingresa tu nombre de usuario: ");
     leerEntrada(nvoUser, 50);
 
@@ -279,10 +280,10 @@ User* menuCrearUsuario(User** userList) {
     addUserToList(userList, nvo);
     guardarDatos(*userList);
     
-    printf("-------------------------\n");
+    printf("---------------------------------------------------------------------------------------\n");
     printf("¡Usuario '%s' creado con exito!\n", nvoUser);
-    printf("-------------------------\n");
-    Sleep(1500);
+    printf("---------------------------------------------------------------------------------------\n");
+    Sleep(1000);
     return nvo;
 }
 
@@ -290,9 +291,9 @@ User* menuLogin(User* userList) {
     char username[50], password[50];
     while (1) { 
         limpiarPantalla();
-        printf("-------------------------\n");
-        printf("--- Iniciar Sesion ---\n");
-        printf("-------------------------\n");
+        printf("---------------------------------------------------------------------------------------\n");
+        printf("                                    INICIO DE SESION\n");
+        printf("---------------------------------------------------------------------------------------\n");
         printf("Usuario: ");
         leerEntrada(username, 50);
 
@@ -300,7 +301,7 @@ User* menuLogin(User* userList) {
 
         if (usuarioEncontrado == NULL) {
             printf("Usuario no encontrado.\n");
-            printf("-------------------------\n");
+            printf("---------------------------------------------------------------------------------------\n");
             printf("¿Deseas crear uno nuevo?\n");
             printf(" 1) SI\n 2) NO (Reintentar)\n X) Salir\n");
             printf("Opcion: ");
@@ -309,15 +310,15 @@ User* menuLogin(User* userList) {
             else if (opcion == 'x') return NULL;
         } else {
             while (1) { 
-                printf("Contrasena: ");
+                printf("Password: ");
                 leerEntrada(password, 50);
                 if (strcmp(usuarioEncontrado->password, password) == 0) {
                     printf("¡Bienvenido, %s!\n", usuarioEncontrado->username);
-                    Sleep(1500);
+                    Sleep(1000);
                     return usuarioEncontrado;
                 } else {
-                    printf("-------------------------\n");
-                    printf("Contrasena Incorrecta.\n");
+                    printf("---------------------------------------------------------------------------------------\n");
+                    printf("Password Incorrecto.\n");
                     printf("¿Que deseas hacer?\n");
                     printf(" 1) VOLVER A ESCRIBIR\n X) Salir\n");
                     printf("Opcion: ");
@@ -337,16 +338,13 @@ void menuTwitter(User* currentUser, User* userList) {
     int i,j;
     do {
         limpiarPantalla();
-        printf("---------------------------\n");
-        printf("         TWITTER\n");
-        printf("---------------------------\n");
-        printf("1) Twittear \n");
-        printf("2) ReTwittear \n");
-        printf("3) Mi Perfil  \n");
-        printf("X) Cerrar Sesion\n");
-        printf("---------------------------\n");
-        printf("FEED PRINCIPAL\n");
-        printf("---------------------------\n");
+        printf("---------------------------------------------------------------------------------------\n");
+        printf("                                        TWITTER\n");
+        printf("---------------------------------------------------------------------------------------\n");
+        printf("1) Twittear         2) ReTwittear          3) Mi Perfil                X) Cerrar Sesion\n");
+        printf("---------------------------------------------------------------------------------------\n");
+        printf("                                    FEED PRINCIPAL\n");
+        printf("---------------------------------------------------------------------------------------\n");
 
         // --- MOSTRAR FEED (Sin números, solo lectura) ---
         TweetDisplay feed[500]; 
@@ -381,7 +379,7 @@ void menuTwitter(User* currentUser, User* userList) {
         // Impresión
         if (totalTweets == 0) {
             printf("  (No hay tweets para mostrar)\n");
-            printf("---------------------------\n");
+            printf("---------------------------------------------------------------------------------------\n");
         } else {
             for (i = 0; i < totalTweets; i++) {
                 StringNode* t = feed[i].tweet;
@@ -420,15 +418,13 @@ void menuPerfil(User* currentUser, User* userList) {
     int i,j;
     do {
         limpiarPantalla();
-        printf("---------------------------------\n");
-        printf("         MI PERFIL\n");
-        printf("---------------------------------\n");
-        printf("1) Borrar un Tweet\n");
-        printf("2) Amistades  \n");
-        printf("x) Regresar\n");
-        printf("---------------------------------\n");
-        printf("         MIS TWEETS\n");
-        printf("---------------------------------\n");
+        printf("---------------------------------------------------------------------------------------\n");
+        printf("                                        MI PERFIL\n");
+        printf("---------------------------------------------------------------------------------------\n");
+        printf("1) Borrar un Tweet                     2) Amistades                         x) Regresar\n");
+        printf("---------------------------------------------------------------------------------------\n");
+        printf("                                        MIS TWEETS\n");
+        printf("---------------------------------------------------------------------------------------\n");
 
         // --- MOSTRAR MIS TWEETS (Sin números) ---
         StringNode* misTweets[500];
@@ -491,16 +487,13 @@ void menuAmistades(User* currentUser, User* userList) {
     char opcion;
     do {
         limpiarPantalla();
-        printf("---------------------------------\n");
-        printf("          AMISTADES\n");
-        printf("---------------------------------\n");
-        printf("1) Seguir a alguien\n");
-        printf("2) Dejar de seguir a alguien\n");
-        printf("3) Ver a mis seguidores  \n");
-        printf("x) Regresar\n");
-        printf("---------------------------------\n");
-        printf("    ACTUALMENTE SIGUES A\n");
-        printf("---------------------------------\n");
+        printf("---------------------------------------------------------------------------------------\n");
+        printf("                                         AMISTADES\n");
+        printf("---------------------------------------------------------------------------------------\n");
+        printf("1) Seguir a alguien  2) Dejar de seguir a alguien  3) Ver a mis seguidores  x) Regresar\n");
+        printf("---------------------------------------------------------------------------------------\n");
+        printf("                                    ACTUALMENTE SIGUES A\n");
+        printf("---------------------------------------------------------------------------------------\n");
 
         StringNode* p = currentUser->following;
         if (p == NULL) {
@@ -511,7 +504,7 @@ void menuAmistades(User* currentUser, User* userList) {
                 p = p->sig;
             }
         }
-        printf("--------------------------------\n");
+        printf("---------------------------------------------------------------------------------------\n");
         printf("Selecciona una opcion: ");
         opcion = getOpcion();
 
@@ -543,16 +536,13 @@ void accionPublicarTweet(User* currentUser, User* userList) {
     char fechaActual[50]; 
     
     limpiarPantalla();
-    printf("---------------------------\n");
-    printf("        TWITTER\n");
-    printf("---------------------------\n");
-    printf("1) Twittear \n");
-    printf("2) ReTwittear \n");
-    printf("3) Mi Perfil  \n");
-    printf("X) Cerrar Sesion\n");
-    printf("---------------------------\n");
-    printf("PUBLICAR UN TWEET\n");
-    printf("---------------------------\n");
+    printf("---------------------------------------------------------------------------------------\n");
+    printf("                                        TWITTER\n");
+    printf("---------------------------------------------------------------------------------------\n");
+    printf("1) Twittear         2) ReTwittear          3) Mi Perfil                X) Cerrar Sesion\n");
+    printf("---------------------------------------------------------------------------------------\n");
+    printf("                                   PUBLICAR UN TWEET\n");
+    printf("---------------------------------------------------------------------------------------\n");
     printf("Escribe tu tweet (max 280 caracteres):\n");
     leerEntrada(tweet, 280);
 
@@ -572,16 +562,13 @@ void accionPublicarTweet(User* currentUser, User* userList) {
 void accionRetwittear(User* currentUser, User* userList) {
     limpiarPantalla();
     int i,j;
-    printf("---------------------------------\n");
-    printf("         TWITTER\n");
-    printf("---------------------------\n");
-    printf("1) Twittear \n");
-    printf("2) ReTwittear \n");
-    printf("3) Mi Perfil  \n");
-    printf("x) Cerrar Sesion\n");
-    printf("---------------------------\n");
-    printf("RETWITTEAR\n");
-    printf("---------------------------\n");
+    printf("---------------------------------------------------------------------------------------\n");
+    printf("                                        TWITTER\n");
+    printf("---------------------------------------------------------------------------------------\n");
+    printf("1) Twittear         2) ReTwittear          3) Mi Perfil                X) Cerrar Sesion\n");
+    printf("---------------------------------------------------------------------------------------\n");
+    printf("                                      RETWITTEAR\n");
+    printf("---------------------------------------------------------------------------------------\n");
 
     // Recolección
     TweetDisplay feed[500]; 
@@ -618,7 +605,7 @@ void accionRetwittear(User* currentUser, User* userList) {
         StringNode* t = feed[i].tweet;
         printf("%d) @%s [%s]:\n", i + 1, feed[i].autor, (t->fecha ? t->fecha : "S/F"));
         printf("   %s\n", t->data);
-        printf("---------------------------\n");
+        printf("--------------------------------------------------------------------------------------\n");
     }
 
     printf("Elige una opcion o pulsa x para volver: ");
@@ -650,15 +637,13 @@ void accionRetwittear(User* currentUser, User* userList) {
 
 void accionBorrarTweet(User* currentUser, User* userList) {
     limpiarPantalla();
-    printf("---------------------------------\n");
-    printf("         MI PERFIL\n");
-    printf("---------------------------------\n");
-    printf("1) Borrar un Tweet\n");
-    printf("2) Amistades  \n");
-    printf("x) Regresar\n");
-    printf("---------------------------------\n");
-    printf("        BORRAR TWEETS\n");
-    printf("---------------------------------\n");
+    printf("---------------------------------------------------------------------------------------\n");
+    printf("                                        MI PERFIL\n");
+    printf("---------------------------------------------------------------------------------------\n");
+    printf("1) Borrar un Tweet                     2) Amistades                         x) Regresar\n");
+    printf("---------------------------------------------------------------------------------------\n");
+    printf("                                      BORRAR TWEETS\n");
+    printf("---------------------------------------------------------------------------------------\n");
 
     // Para borrar, mostramos la lista en orden original (de memoria) 
     // para facilitar el borrado por índice de la lista enlazada.
@@ -672,7 +657,7 @@ void accionBorrarTweet(User* currentUser, User* userList) {
     }
     int maxTweets = i - 1;
 
-    printf("--------------------------------\n");
+    printf("---------------------------------------------------------------------------------------\n");
     printf("Elige una opcion o pulsa x para volver: ");
     char buffer[10];
     leerEntrada(buffer, 10);
@@ -711,15 +696,13 @@ void accionBorrarTweet(User* currentUser, User* userList) {
 
 void accionSeguir(User* currentUser, User* userList) {
     limpiarPantalla();
-    printf("---------------------------------\n");
-    printf("          AMISTADES\n");
-    printf("---------------------------------\n");
-    printf("1) Seguir a alguien\n");
-    printf("2) Dejar de seguir a alguien  \n");
-    printf("x) Regresar\n");
-    printf("---------------------------------\n");
-    printf("   ¿A QUIEN VAS A SEGUIR?\n");
-    printf("---------------------------------\n");
+    printf("---------------------------------------------------------------------------------------\n");
+    printf("                                         AMISTADES\n");
+    printf("---------------------------------------------------------------------------------------\n");
+    printf("1) Seguir a alguien  2) Dejar de seguir a alguien  3) Ver a mis seguidores  x) Regresar\n");
+    printf("---------------------------------------------------------------------------------------\n");
+    printf("                                 ¿A QUIEN VAS A SEGUIR?\n");
+    printf("---------------------------------------------------------------------------------------\n");
 
     User* p = userList;
     User* usuariosDisponibles[100]; 
@@ -734,7 +717,7 @@ void accionSeguir(User* currentUser, User* userList) {
         p = p->sig;
     }
     printf(" x) Volver\n");
-    printf("--------------------------------\n");
+    printf("---------------------------------------------------------------------------------------\n");
     printf("Elige una opcion: ");
     
     char buffer[10];
@@ -757,16 +740,13 @@ void accionSeguir(User* currentUser, User* userList) {
 
 void accionDejarDeSeguir(User* currentUser, User* userList) {
     limpiarPantalla();
-    printf("---------------------------------\n");
-    printf("          AMISTADES\n");
-    printf("---------------------------------\n");
-    printf("1) Seguir a alguien\n");
-    printf("2) Dejar de seguir a alguien\n");
-    printf("3) Ver a mis seguidores  \n");
-    printf("x) Regresar\n");
-    printf("---------------------------------\n");
-    printf(" ¿A QUIEN DEJARAS DE SEGUIR?\n");
-    printf("---------------------------------\n");
+    printf("---------------------------------------------------------------------------------------\n");
+    printf("                                         AMISTADES\n");
+    printf("---------------------------------------------------------------------------------------\n");
+    printf("1) Seguir a alguien  2) Dejar de seguir a alguien  3) Ver a mis seguidores  x) Regresar\n");
+    printf("---------------------------------------------------------------------------------------\n");
+    printf("                                ¿A QUIEN DEJARAS DE SEGUIR?\n");
+    printf("---------------------------------------------------------------------------------------\n");
 
     // Listamos a quien seguimos para poder seleccionar
     StringNode* p = currentUser->following;
@@ -786,7 +766,7 @@ void accionDejarDeSeguir(User* currentUser, User* userList) {
         return;
     }
 
-    printf("--------------------------------\n");
+    printf("---------------------------------------------------------------------------------------\n");
     printf("Elige una opcion o x para volver: ");
     
     char buffer[10];
@@ -808,16 +788,13 @@ void accionDejarDeSeguir(User* currentUser, User* userList) {
 
 void accionVerSeguidores(User* currentUser, User* userList) {
     limpiarPantalla();
-    printf("---------------------------------\n");
-    printf("          AMISTADES\n");
-    printf("---------------------------------\n");
-    printf("1) Seguir a alguien\n");
-    printf("2) Dejar de seguir a alguien\n");
-    printf("3) Ver a mis seguidores  \n");
-    printf("x) Regresar\n");
-    printf("---------------------------------\n");
-    printf("    LISTA DE SEGUIDORES\n");
-    printf("---------------------------------\n");
+    printf("---------------------------------------------------------------------------------------\n");
+    printf("                                         AMISTADES\n");
+    printf("---------------------------------------------------------------------------------------\n");
+    printf("1) Seguir a alguien  2) Dejar de seguir a alguien  3) Ver a mis seguidores  x) Regresar\n");
+    printf("---------------------------------------------------------------------------------------\n");
+    printf("                                    LISTA DE SEGUIDORES\n");
+    printf("---------------------------------------------------------------------------------------\n");
 
     User* p = userList;
     int count = 0;
@@ -832,7 +809,7 @@ void accionVerSeguidores(User* currentUser, User* userList) {
     }
     if (count == 0) printf("(Aun no tienes seguidores)\n");
     
-    printf("--------------------------------\n");
+    printf("---------------------------------------------------------------------------------------\n");
     printf("Escribe x para volver: ");
     char buffer[10];
     do {
